@@ -32,7 +32,9 @@ jobs:
         run: npm install -g pnpm@latest
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm store prune
 
       - name: Build application
         run: pnpm run build
@@ -56,7 +58,7 @@ jobs:
         run: npm install -g pnpm@latest
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Run type check
         run: pnpm run type-check
