@@ -68,15 +68,15 @@ jobs:
 
       - name: Run unit tests
         run: pnpm test
-
+          
   deploy-qa:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' # Deploy QA only on manual trigger or direct push to main
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+  
       - name: Restore pnpm cache
         uses: actions/cache@v2
         with:
@@ -84,14 +84,20 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
-
+  
       - name: Install pnpm
         run: npm install -g pnpm@latest
-
+  
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli
+  
       - name: Deploy to QA
+        env:
+          SWA_TOKEN: ${{ secrets.SWA_DEPLOYMENT_TOKEN }}
         run: |
           echo "Déploiement vers l'environnement de QA"
-
+          swa deploy --env qa -d $SWA_TOKEN -a ./dist
+  
   deploy-prod:
     needs: deploy-qa
     runs-on: ubuntu-latest
@@ -99,7 +105,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+  
       - name: Restore pnpm cache
         uses: actions/cache@v2
         with:
@@ -107,10 +113,16 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
-
+  
       - name: Install pnpm
         run: npm install -g pnpm@latest
-
+  
+      - name: Install SWA CLI
+        run: npm install -g @azure/static-web-apps-cli
+  
       - name: Deploy to Prod
+        env:
+          SWA_TOKEN: ${{ secrets.SWA_DEPLOYMENT_TOKEN }}
         run: |
           echo "Déploiement vers l'environnement de production"
+          swa deploy --env production -d $SWA_TOKEN -a ./dist
